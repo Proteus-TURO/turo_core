@@ -1,5 +1,9 @@
 library turo_core;
 
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:roslibdart/roslibdart.dart';
 import 'package:turo_core/exceptions/data_type_exception.dart';
 
@@ -29,5 +33,31 @@ class RosBridge {
     Map<String, dynamic> angular = {'x': 0.0, 'y': 0.0, 'z': z};
     Map<String, dynamic> twist = {'linear': linear, 'angular': angular};
     await _serialDrive.publish(twist);
+  }
+}
+
+class UDP {
+  late InternetAddress ip;
+  late int port;
+
+  UDP(this.ip, this.port);
+
+  Future<void> sendUDPBroadcast(String message, int port) async {
+    final broadcast = InternetAddress('255.255.255.255');
+    final socket = await RawDatagramSocket.bind(InternetAddress.anyIPv4, 0);
+    socket.broadcastEnabled = true;
+    final messageBytes = utf8.encode(message);
+
+    socket.listen((event) {
+      if (event == RawSocketEvent.write) {
+        if (kDebugMode) {
+          print('Broadcast message sent successfully');
+        }
+      }
+    });
+
+    socket.send(messageBytes, broadcast, port);
+    await Future.delayed(const Duration(milliseconds: 100));
+    socket.close();
   }
 }
