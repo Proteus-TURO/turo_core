@@ -19,7 +19,7 @@ class RosBridge {
     _serialDrive =
         Topic(ros: _ros, name: '/serial/drive', type: 'geometry_msgs/Twist');
     _serialLightAssistant =
-        Topic(ros: _ros, name: "/serial/automaticLed", type: "std_msgs/Bool");
+        Topic(ros: _ros, name: "/serial/led/threshold", type: "std_msgs/UInt8");
     _ros.connect();
   }
 
@@ -31,8 +31,11 @@ class RosBridge {
     await _serialLed.publish(json);
   }
 
-  Future<void> setAutomaticLight(bool automatic) async {
-    await _serialLightAssistant.publish(automatic);
+  Future<void> setAutomaticLight(int threshold) async {
+    if (threshold < 0 || threshold > 255) {
+      throw DataTypeException("Brightness value must be between 0 and 255");
+    }
+    await _serialLightAssistant.publish(threshold);
   }
 
   Future<void> setVelocity(double x, double y, double z) async {
