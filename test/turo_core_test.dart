@@ -12,6 +12,6 @@ void main() {
 
   test("sending UDP helo message", () {
     final udp = UDP(InternetAddress("255.255.255.255"), 6000);
-    udp.sendUDPBroadcast("HelloWorld", 6000);
+    udp.sendUDPBroadcast("HelloWorld");
   });
 }

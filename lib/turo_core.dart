@@ -49,13 +49,20 @@ class UDP {
 
   UDP(this.ip, this.port);
 
-  Future<void> sendUDPBroadcast(String message, int port) async {
-    final broadcast = InternetAddress('255.255.255.255');
-    final socket = await RawDatagramSocket.bind(InternetAddress.anyIPv4, 0);
+  Future<void> sendUDPBroadcast(String message) async {
+    final broadcast = ip;
+    final socket = await RawDatagramSocket.bind(InternetAddress.anyIPv4, port);
     socket.broadcastEnabled = true;
     final messageBytes = utf8.encode(message);
 
     socket.listen((event) {
+      Datagram? dg = socket.receive();
+      if (dg != null) {
+        if (kDebugMode) {
+          print("received ${dg.data}");
+        }
+      }
+
       if (event == RawSocketEvent.write) {
         if (kDebugMode) {
           print('Broadcast message sent successfully');
