@@ -4,8 +4,11 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:roslibdart/roslibdart.dart';
 import 'package:turo_core/exceptions/data_type_exception.dart';
+import 'package:flutter_mjpeg/flutter_mjpeg.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 
 class RosBridge {
   late Ros _ros;
@@ -76,5 +79,97 @@ class UDP {
     socket.send(messageBytes, broadcast, port);
     await Future.delayed(const Duration(milliseconds: 100));
     socket.close();
+  }
+}
+
+class VideoStream extends HookWidget {
+  ValueNotifier<bool>? _isRunning;
+  late String _stream;
+  late double _height;
+  late double _width;
+  late BoxFit _boxFit;
+  double? _compression;
+  double? _scale;
+
+  VideoStream(String ip, int port, String urlPath,
+      {double? height,
+      double? width,
+      BoxFit boxFit = BoxFit.contain,
+      double? scale,
+      double? compression,
+      super.key}) {
+    _stream = 'http://$ip:$port/$urlPath';
+
+    height ??= double.maxFinite;
+    width ??= double.maxFinite;
+
+    _height = height;
+    _width = width;
+    _boxFit = boxFit;
+    _compression = compression;
+    _scale = scale;
+  }
+
+  void reload() {
+    if (_isRunning != null) {
+      _isRunning!.value = !_isRunning!.value;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    _isRunning = useState(true);
+    var widget = Mjpeg(
+        width: _width,
+        height: _height,
+        fit: _boxFit,
+        isLive: _isRunning!.value,
+        error: (context, error, stack) {
+          return Center(
+              child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.red,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  "Oops, something went wrong!",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  error.toString(),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                  ),
+                ),
+              ],
+            ),
+          ));
+        },
+        stream: _stream,
+        headers: const {
+          'ApiKey':
+              '9zY9ylYgnCa5j2L2tjV1W0B5qL5ZOEnNIcwdbIFrsqAJdYsZPzBgWdKH7nigecgX'
+        });
+
+    if (_compression != null) {
+      widget.headers.putIfAbsent('Compression', () => _compression.toString());
+    }
+
+    if (_scale != null) {
+      widget.headers.putIfAbsent('Scale', () => _scale.toString());
+    }
+
+    return widget;
   }
 }
