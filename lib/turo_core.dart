@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
 import 'package:roslibdart/roslibdart.dart';
 import 'package:turo_core/exceptions/data_type_exception.dart';
 
@@ -76,5 +77,26 @@ class UDP {
     socket.send(messageBytes, broadcast, port);
     await Future.delayed(const Duration(milliseconds: 100));
     socket.close();
+  }
+}
+
+class WIFI {
+  Future<void> sendCredentials(String ssid, String password) async {
+    final response = await http.post(
+        Uri.parse('http://localhost:6000/api/wifi'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(<String, String>{'ssid': ssid, 'password': password}));
+
+    if (response.statusCode == 200) {
+      if (kDebugMode) {
+        print("So toll");
+      }
+    } else {
+      if (kDebugMode) {
+        print("Fehler mehler");
+      }
+    }
   }
 }
