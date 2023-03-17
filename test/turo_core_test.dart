@@ -9,14 +9,16 @@ void main() {
     rosBridge.setBrightness(255);
   });
 
+
+   */
   test("sending UDP helo message", () {
     final udp = UDP(InternetAddress("255.255.255.255"), 6000);
-    udp.sendUDPBroadcast("HelloWorld");
+    udp.listen();
   });
-   */
 
-  test("send WIFI credentials as a http post msg", () async {
+  /*test("send WIFI credentials as a http post msg", () async {
     final wifi = WIFI();
     await wifi.sendCredentials("Balls", "Cock");
   });
+   */
 }

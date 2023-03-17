@@ -4,12 +4,12 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_mjpeg/flutter_mjpeg.dart';
+import 'package:http/http.dart' as http;
 import 'package:roslibdart/roslibdart.dart';
 import 'package:turo_core/exceptions/data_type_exception.dart';
-import 'package:flutter_mjpeg/flutter_mjpeg.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 
 class RosBridge {
   late Ros _ros;
@@ -80,6 +80,23 @@ class UDP {
     socket.send(messageBytes, broadcast, port);
     await Future.delayed(const Duration(milliseconds: 100));
     socket.close();
+  }
+
+  Future<void> listen() async {
+    RawDatagramSocket socket =
+        await RawDatagramSocket.bind(InternetAddress.anyIPv4, port);
+
+    socket.listen((event) {
+      if (event == RawSocketEvent.read) {
+        final datagram = socket.receive();
+        if (datagram != null) {
+          final message = String.fromCharCodes(datagram.data);
+          if (kDebugMode) {
+            print('Received UDP broadcast message: $message');
+          }
+        }
+      }
+    });
   }
 }
 
