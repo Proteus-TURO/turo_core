@@ -196,10 +196,6 @@ class HeloTuroData {
   }
 }
 
-void printCar(HeloTuroData car) {
-  print(car.name);
-}
-
 class HeloTuroReceiver extends StatefulWidget {
   late Function onChildTab;
   HeloTuroReceiver(Function onChildTab, {super.key}) {
