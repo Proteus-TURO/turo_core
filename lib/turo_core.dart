@@ -231,7 +231,7 @@ class HeloTuroData {
       videStreamPort = decodedJson['video_stream'];
     }
 
-    ip = ip;
+    this.ip = ip;
   }
 }
 
