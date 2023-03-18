@@ -219,7 +219,7 @@ class HeloTuroData {
   late int videStreamPort = 5000;
   late String ip;
 
-  HeloTuroData(String jsonString, String ip) {
+  HeloTuroData(String jsonString, this.ip) {
     Map<String, dynamic> decodedJson = jsonDecode(jsonString);
     if (decodedJson.containsKey('name')) {
       name = decodedJson['name'];
@@ -230,8 +230,6 @@ class HeloTuroData {
     if (decodedJson.containsKey('video_stream')) {
       videStreamPort = decodedJson['video_stream'];
     }
-
-    this.ip = ip;
   }
 }
 
