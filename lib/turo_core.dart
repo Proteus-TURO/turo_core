@@ -2,7 +2,6 @@ library turo_core;
 
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:roslibdart/roslibdart.dart';
@@ -91,14 +90,14 @@ class VideoStream extends HookWidget {
   double? _compression;
   double? _scale;
 
-  VideoStream(String ip, int port, String urlPath,
+  VideoStream(String ip, int port, String urlPath, String topic,
       {double? height,
       double? width,
       BoxFit boxFit = BoxFit.contain,
       double? scale,
       double? compression,
       super.key}) {
-    _stream = 'http://$ip:$port/$urlPath';
+    _stream = 'http://$ip:$port/$urlPath?topic=$topic';
 
     height ??= double.maxFinite;
     width ??= double.maxFinite;
@@ -157,7 +156,8 @@ class VideoStream extends HookWidget {
           ));
         },
         stream: _stream,
-        headers: const {
+        // Jo nt const mochn, weil donn donoch compression und scale nt hinzugefügt werden kenn
+        headers: {
           'ApiKey':
               '9zY9ylYgnCa5j2L2tjV1W0B5qL5ZOEnNIcwdbIFrsqAJdYsZPzBgWdKH7nigecgX'
         });
@@ -171,5 +171,100 @@ class VideoStream extends HookWidget {
     }
 
     return widget;
+  }
+}
+
+class HeloTuroData {
+  late String name = "Turo 1";
+  late int bridgePort = 8080;
+  late int videStreamPort = 5000;
+  late String ip;
+
+  HeloTuroData(String jsonString, String ip) {
+    Map<String, dynamic> decodedJson = jsonDecode(jsonString);
+    if (decodedJson.containsKey('name')) {
+      this.name = decodedJson['name'];
+    }
+    if (decodedJson.containsKey('bridge')) {
+      this.bridgePort = decodedJson['bridge'];
+    }
+    if (decodedJson.containsKey('video_stream')) {
+      this.videStreamPort = decodedJson['video_stream'];
+    }
+
+    this.ip = ip;
+  }
+}
+
+void printCar(HeloTuroData car) {
+  print(car.name);
+}
+
+class HeloTuroReceiver extends StatefulWidget {
+  late Function onChildTab;
+  HeloTuroReceiver(Function onChildTab, {super.key}) {
+    this.onChildTab = onChildTab;
+  }
+
+  @override
+  State<HeloTuroReceiver> createState() => _HeloTuroReceiverState();
+}
+
+class _HeloTuroReceiverState extends State<HeloTuroReceiver> {
+  List<HeloTuroData> cars = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _bindUDPSocket();
+  }
+
+  void _bindUDPSocket() async {
+    RawDatagramSocket udpSocket =
+        await RawDatagramSocket.bind(InternetAddress.anyIPv4, 6274);
+    udpSocket.listen((RawSocketEvent event) {
+      Datagram? datagram = udpSocket.receive();
+      if (datagram != null) {
+        var jsonString = utf8.decode(datagram.data);
+        var ip = datagram.address.address;
+        var heloTuroData = HeloTuroData(jsonString, ip);
+        var existingIndex = cars.indexWhere((element) => element.ip == ip);
+
+        if (existingIndex != -1) {
+          return;
+        }
+
+        setState(() {
+          cars.add(heloTuroData);
+        });
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.separated(
+      padding: const EdgeInsets.all(16),
+      physics: const ScrollPhysics(),
+      itemCount: cars.length + 1,
+      separatorBuilder: (context, index) => Divider(),
+      itemBuilder: (context, index) {
+        if (index == cars.length) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 16.0),
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+        final car = cars[index];
+        return ListTile(
+            leading: Icon(Icons.directions_car),
+            title: Text(car.name),
+            subtitle: Text('IP: ${car.ip}'),
+            trailing: Icon(Icons.arrow_forward_ios),
+            onTap: () => widget.onChildTab(car));
+      },
+    );
   }
 }
