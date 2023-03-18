@@ -222,24 +222,22 @@ class HeloTuroData {
   HeloTuroData(String jsonString, String ip) {
     Map<String, dynamic> decodedJson = jsonDecode(jsonString);
     if (decodedJson.containsKey('name')) {
-      this.name = decodedJson['name'];
+      name = decodedJson['name'];
     }
     if (decodedJson.containsKey('bridge')) {
-      this.bridgePort = decodedJson['bridge'];
+      bridgePort = decodedJson['bridge'];
     }
     if (decodedJson.containsKey('video_stream')) {
-      this.videStreamPort = decodedJson['video_stream'];
+      videStreamPort = decodedJson['video_stream'];
     }
 
-    this.ip = ip;
+    ip = ip;
   }
 }
 
 class HeloTuroReceiver extends StatefulWidget {
-  late Function onChildTab;
-  HeloTuroReceiver(Function onChildTab, {super.key}) {
-    this.onChildTab = onChildTab;
-  }
+  final Function onChildTab;
+  const HeloTuroReceiver(this.onChildTab, {super.key});
 
   @override
   State<HeloTuroReceiver> createState() => _HeloTuroReceiverState();
@@ -282,7 +280,7 @@ class _HeloTuroReceiverState extends State<HeloTuroReceiver> {
       padding: const EdgeInsets.all(16),
       physics: const ScrollPhysics(),
       itemCount: cars.length + 1,
-      separatorBuilder: (context, index) => Divider(),
+      separatorBuilder: (context, index) => const Divider(),
       itemBuilder: (context, index) {
         if (index == cars.length) {
           return const Center(
@@ -294,10 +292,10 @@ class _HeloTuroReceiverState extends State<HeloTuroReceiver> {
         }
         final car = cars[index];
         return ListTile(
-            leading: Icon(Icons.directions_car),
+            leading: const Icon(Icons.directions_car),
             title: Text(car.name),
             subtitle: Text('IP: ${car.ip}'),
-            trailing: Icon(Icons.arrow_forward_ios),
+            trailing: const Icon(Icons.arrow_forward_ios),
             onTap: () => widget.onChildTab(car));
       },
     );
